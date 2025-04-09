@@ -50,7 +50,7 @@
         android:drawablePadding="10dp"
         android:elevation="3dp"
         android:inputType="numberPassword"
-        android:hint="Name"
+        android:hint="Password"
         android:padding="15dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.493"

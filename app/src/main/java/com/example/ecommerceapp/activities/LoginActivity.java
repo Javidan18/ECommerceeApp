@@ -18,7 +18,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class LoginActivity extends AppCompatActivity {
 
-    EditText email,password;
+    private EditText email, password;
     private FirebaseAuth auth;
 
     @Override
@@ -26,53 +26,64 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        auth=FirebaseAuth.getInstance();
-
-        email=findViewById(R.id.email);
-        password=findViewById(R.id.password);
-        }
-
-        public void signIn(View view) {
-
-            String userEmail=email.getText().toString();
-            String userPassword=password.getText().toString();
-
-            if(TextUtils.isEmpty(userEmail)){
-                Toast.makeText(this,"Enter Email Address!",Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if(TextUtils.isEmpty(userPassword)){
-                Toast.makeText(this,"Enter Password!",Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-
-            if(userPassword.length() < 6) {
-                Toast.makeText(this, "Password to short, enter minimum 6 characters!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            auth.signInWithEmailAndPassword(userEmail,userPassword)
-                            .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-
-                                    if(task.isSuccessful()){
-
-                                        Toast.makeText(LoginActivity.this, "Login Successful", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(LoginActivity.this,MainActivity.class));
-                                    }else {
-                                        Toast.makeText(LoginActivity.this, "Error"+task.getException(), Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
-
-        }
-
-
-        public void signUp(View view) {
-            startActivity(new Intent(LoginActivity.this,RegistrationActivity.class));
-         }
-
-
+        auth = FirebaseAuth.getInstance();
+        email = findViewById(R.id.email);
+        password = findViewById(R.id.password);
     }
+
+    public void signIn(View view) {
+        String userEmail = email.getText().toString().trim();
+        String userPassword = password.getText().toString().trim();
+
+        if (TextUtils.isEmpty(userEmail)) {
+            showToast("Please enter your email address!");
+            return;
+        }
+        if (TextUtils.isEmpty(userPassword)) {
+            showToast("Please enter your password!");
+            return;
+        }
+        if (userPassword.length() < 6) {
+            showToast("Password is too short! Enter at least 6 characters.");
+            return;
+        }
+
+        auth.signInWithEmailAndPassword(userEmail, userPassword)
+                .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            showToast("Login Successful");
+                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            finish();
+                        } else {
+                            // Check for unregistered account error
+                            String errorMessage = task.getException().getMessage();
+                            if (errorMessage.contains("There is no user record corresponding to this identifier")) {
+                                showToast("This email is not registered. Please sign up.");
+                            } else {
+                                handleLoginError(errorMessage);
+                            }
+                        }
+                    }
+                });
+    }
+
+    public void signUp(View view) {
+        startActivity(new Intent(LoginActivity.this, RegistrationActivity.class));
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void handleLoginError(String errorMessage) {
+        if (errorMessage.contains("The password is invalid")) {
+            showToast("Invalid password! Please try again.");
+        } else if (errorMessage.contains("badly formatted")) {
+            showToast("Invalid email format!");
+        } else {
+            showToast("Error: " + errorMessage);
+        }
+    }
+}

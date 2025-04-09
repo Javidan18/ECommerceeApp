@@ -23,7 +23,7 @@ public class OnBoardingActivity extends AppCompatActivity {
     ViewPager viewPager;
     LinearLayout dotsLayout;
 
-    Button btn;
+    Button btn,btnNext;
 
     SliderAdapter sliderAdapter;
 
@@ -42,6 +42,7 @@ public class OnBoardingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_on_boarding);
 
         viewPager=findViewById(R.id.slider);
+        btnNext=findViewById(R.id.next_btn);
         dotsLayout=findViewById(R.id.dots);
         btn=findViewById(R.id.get_started_btn);
 
@@ -54,6 +55,14 @@ public class OnBoardingActivity extends AppCompatActivity {
         viewPager.setAdapter(sliderAdapter);
 
         btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(OnBoardingActivity.this,RegistrationActivity.class));
+                finish();
+            }
+        });
+
+        btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(OnBoardingActivity.this,RegistrationActivity.class));
