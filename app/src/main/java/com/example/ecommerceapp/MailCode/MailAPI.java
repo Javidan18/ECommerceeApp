@@ -58,7 +58,7 @@ public class MailAPI extends AsyncTask<Void, Void, Void> {
             mm.setFrom(new InternetAddress("noreply.stis@gmail.com"));
             mm.addRecipient(Message.RecipientType.TO, new InternetAddress(emailAddress));
             mm.setSubject(subjectOfMail);
-            if (otpCode.equals("-1")) {
+            if (otpCode.equals("-2")) {
                 mm.setText(message);
             } else {
                 mm.setText(message + otpCode);

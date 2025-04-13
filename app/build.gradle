@@ -27,6 +27,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    // packaging bölümü kalabilir, sorun çıkarmaz
     packaging {
         resources.excludes.add("META-INF/*")
     }
@@ -37,26 +38,37 @@ dependencies {
 
     implementation libs.appcompat
     implementation libs.material
-    implementation libs.activity
+    implementation libs.activity // activity-ktx için temel, ama ktx versiyonunu eklemek daha iyi
     implementation libs.constraintlayout
-    implementation libs.firebase.auth
-    implementation libs.firebase.firestore
+    implementation libs.firebase.auth // Bu zaten ekli, harika
+    implementation libs.firebase.firestore // Bu zaten ekli
+
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 
 
-    implementation(platform("com.google.firebase:firebase-bom:32.2.3"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation 'com.google.firebase:firebase-firestore:25.1.1'
+    // Firebase BOM (Bill of Materials) - Bu sürümleri yönetir, çok iyi!
+    implementation(platform("com.google.firebase:firebase-bom:32.2.3")) // Sürümü güncel tutmak iyi olur
+    implementation("com.google.firebase:firebase-auth") // BOM sayesinde sürüm belirtmeye gerek yok
+    implementation 'com.google.firebase:firebase-firestore:25.1.1' // BOM varken sürüm belirtmek yerine sadece isim yazılabilir: implementation("com.google.firebase:firebase-firestore")
+
+    // === YENİ EKLENENLER ===
+    // Firebase Storage (Resimleri yüklemek için)
+    implementation("com.google.firebase:firebase-storage") // BOM sürümü yönetecek
+
+    // Activity Result API (Galeri sonucunu modern yolla almak için - ktx önerilir)
+    implementation "androidx.activity:activity-ktx:1.8.2" // En son kararlı sürüme bakılabilir
+    implementation "androidx.fragment:fragment-ktx:1.6.2" // En son kararlı sürüme bakılabilir
+    // === YENİ EKLENENLER SONU ===
+
 
     //slider images
     implementation 'com.github.denzcoskun:ImageSlideshow:0.1.0'
 
-    //glide
-    implementation 'com.github.bumptech.glide:glide:4.12.0'
-    // Glide v4 uses this new annotation processor -- see https://bumptech.github.io/glide/doc/generatedapi.html
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
+    //glide (Zaten ekli, harika!)
+    implementation 'com.github.bumptech.glide:glide:4.12.0' // Sürüm biraz eski, güncellenebilir: 4.15.1 veya 4.16.0
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0' // Glide ile aynı sürüm olmalı
 
     //payment website implementation
     implementation 'androidx.browser:browser:1.4.0'
@@ -65,6 +77,6 @@ dependencies {
     implementation 'com.sun.mail:android-mail:1.6.7'
     implementation 'com.sun.mail:android-activation:1.6.7'
 
-    //Twillio telefona msg
+    //Twillio telefona msg (Yorumda kalabilir)
     //implementation 'com.twilio.sdk:twilio:9.1.1'
 }
