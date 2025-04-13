@@ -5,6 +5,9 @@
     <string name="second_slide">Fast Delivery</string>
     <string name="third_slide">Good Service</string>
 
+    <string name="back_button">Geri Dön</string>
+    <string name="profile_photo">Profil Fotoğrafı</string>
+
 
     <string name="description">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry standard dummy text ever since the</string>
     <!-- TODO: Remove or change this placeholder text -->

@@ -8,7 +8,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+// import androidx.activity.EdgeToEdge; // Bu import muhtemelen gereksiz
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -23,9 +23,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.Timestamp; // <-- Timestamp import edildi
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+// import java.text.SimpleDateFormat; // Artık gerekli değil
+// import java.util.Calendar;        // Artık gerekli değil
 import java.util.HashMap;
 
 public class DetailedActivity extends AppCompatActivity {
@@ -59,7 +60,6 @@ public class DetailedActivity extends AppCompatActivity {
         toolbar=findViewById(R.id.detailed_toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
 
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,48 +95,62 @@ public class DetailedActivity extends AppCompatActivity {
         addToCart=findViewById(R.id.add_to_cart);
         buyNow=findViewById(R.id.buy_now);
 
-        //new Products
-        if(newProductsModel !=null) {
-            Glide.with(getApplicationContext()).load(newProductsModel.getImg_url()).into(detailedImg);
+        // --- Ürün Bilgilerini Yükleme (Tek bir yerde yapmak daha iyi) ---
+        String productName = "";
+        String productRating = "";
+        String productDescription = "";
+        String productImageUrl = "";
+        int productPrice = 0; // Fiyatı int olarak alalım
 
-            name.setText(newProductsModel.getName());
-            rating.setText(newProductsModel.getRating());
-            description.setText(newProductsModel.getDescription());
-            price.setText(String.valueOf(newProductsModel.getPrice()));
-            name.setText(newProductsModel.getName());
-
-            totalPrice = newProductsModel.getPrice() * totalQuantity;
+        if (newProductsModel != null) {
+            productName = newProductsModel.getName();
+            productRating = newProductsModel.getRating();
+            productDescription = newProductsModel.getDescription();
+            productImageUrl = newProductsModel.getImg_url();
+            productPrice = newProductsModel.getPrice();
+        } else if (popularProductsModel != null) {
+            productName = popularProductsModel.getName();
+            productRating = popularProductsModel.getRating();
+            productDescription = popularProductsModel.getDescription();
+            productImageUrl = popularProductsModel.getImg_url();
+            productPrice = popularProductsModel.getPrice();
+        } else if (showAllModel != null) {
+            productName = showAllModel.getName();
+            productRating = showAllModel.getRating();
+            productDescription = showAllModel.getDescription();
+            productImageUrl = showAllModel.getImg_url();
+            productPrice = showAllModel.getPrice();
         }
 
-        //Popular Products
-        if(popularProductsModel !=null) {
-            Glide.with(getApplicationContext()).load(popularProductsModel.getImg_url()).into(detailedImg);
-            name.setText(popularProductsModel.getName());
-            rating.setText(popularProductsModel.getRating());
-            description.setText(popularProductsModel.getDescription());
-            price.setText(String.valueOf(popularProductsModel.getPrice()));
-            name.setText(popularProductsModel.getName());
+        // UI elemanlarını set et
+        Glide.with(getApplicationContext()).load(productImageUrl).into(detailedImg);
+        name.setText(productName);
+        rating.setText(productRating);
+        description.setText(productDescription);
+        price.setText(String.valueOf(productPrice) + "$"); // Para birimi ekle
+        quantity.setText(String.valueOf(totalQuantity)); // Miktarı başlangıçta ayarla
 
-            totalPrice = popularProductsModel.getPrice() * totalQuantity;
-        }
-        //Show All Products
-        if(showAllModel !=null) {
-            Glide.with(getApplicationContext()).load(showAllModel.getImg_url()).into(detailedImg);
+        // Başlangıç totalPrice'ı hesapla
+        totalPrice = productPrice * totalQuantity;
 
-            name.setText(showAllModel.getName());
-            rating.setText(showAllModel.getRating());
-            description.setText(showAllModel.getDescription());
-            price.setText(String.valueOf(showAllModel.getPrice()));
-            name.setText(showAllModel.getName());
+        //-------------------------------------------------------------
 
-            totalPrice = showAllModel.getPrice() * totalQuantity;
-        }
-
-        //Buy Now
+        //Buy Now (Bu kısım değişmedi, sadece totalPrice'ın yukarıda hesaplandığından emin olun)
         buyNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent= new Intent(DetailedActivity.this,AddressActivity.class);
+
+                // ---!!! DİKKAT: Buy Now için tutar gönderme mantığı !!!---
+                // AddressActivity'nin sepetten gelen tutarı beklediğini varsayarsak,
+                // burası SEPETTEKİ TOPLAM TUTARI DEĞİL, sadece BU ÜRÜNÜN o anki
+                // seçili miktarının tutarını göndermeli. Eğer AddressActivity
+                // hem sepetten hem de buradan gelen akışı yönetiyorsa, farklı
+                // intent ekstraları kullanmak daha iyi olabilir.
+                // Şimdilik sadece mevcut ürünü gönderiyoruz, ama tutarı göndermiyoruz.
+                // Gerekirse 'amount' ekstrası buraya EKLENMELİDİR:
+                // intent.putExtra("amount", (double)totalPrice); // double'a cast et
+                // ---------------------------------------------------------
 
                 if (newProductsModel !=null){
                     intent.putExtra("item",newProductsModel);
@@ -156,85 +170,107 @@ public class DetailedActivity extends AppCompatActivity {
         addToCart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addToCart();
+                addToCart(); // Metodu çağır
             }
         });
 
 
-
+        // --- Miktar Değiştirme (Tek bir yerde yapmak daha iyi) ---
         addItems.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(totalQuantity<10){
+                if (totalQuantity < 10) {
                     totalQuantity++;
                     quantity.setText(String.valueOf(totalQuantity));
-
-                if(newProductsModel != null){
-                    totalPrice = newProductsModel.getPrice() * totalQuantity;
+                    updateTotalPrice(); // Toplam fiyatı güncelle
                 }
-                if(popularProductsModel !=null){
-                    totalPrice = popularProductsModel.getPrice() * totalQuantity;
-                }
-                if(showAllModel !=null){
-                    totalPrice = showAllModel.getPrice() * totalQuantity;
-                }
-
-                }
-
             }
         });
 
         removeItems.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(totalQuantity>1){
+                if (totalQuantity > 1) {
                     totalQuantity--;
                     quantity.setText(String.valueOf(totalQuantity));
-
-                    if(newProductsModel != null){
-                        totalPrice = newProductsModel.getPrice() * totalQuantity;
-                    }
-                    if(popularProductsModel !=null){
-                        totalPrice = popularProductsModel.getPrice() * totalQuantity;
-                    }
-                    if(showAllModel !=null){
-                        totalPrice = showAllModel.getPrice() * totalQuantity;
-                    }
+                    updateTotalPrice(); // Toplam fiyatı güncelle
                 }
-
             }
         });
-
-
+        //-------------------------------------------------------------
     }
 
+    // Toplam fiyatı güncelleyen yardımcı metot
+    private void updateTotalPrice() {
+        int productPrice = 0;
+        if (newProductsModel != null) {
+            productPrice = newProductsModel.getPrice();
+        } else if (popularProductsModel != null) {
+            productPrice = popularProductsModel.getPrice();
+        } else if (showAllModel != null) {
+            productPrice = showAllModel.getPrice();
+        }
+        totalPrice = productPrice * totalQuantity;
+        // İsterseniz fiyat TextView'ını da burada güncelleyebilirsiniz,
+        // ama genellikle sadece sepete eklerkenki toplam fiyat önemlidir.
+    }
+
+
+    // Sepete ekleme metodu güncellendi
     private void addToCart() {
 
-        String saveCurrentTime,saveCurrentDate;
+        // String saveCurrentTime,saveCurrentDate; // Artık gerekli değil
 
-        Calendar calForDate = Calendar.getInstance();
+        // Calendar calForDate = Calendar.getInstance(); // Artık gerekli değil
 
-        SimpleDateFormat currentDate = new SimpleDateFormat("dd MM, yyyy");
-        saveCurrentDate = currentDate.format(calForDate.getTime());
+        // SimpleDateFormat currentDate = new SimpleDateFormat("dd MM, yyyy"); // Artık gerekli değil
+        // saveCurrentDate = currentDate.format(calForDate.getTime()); // Artık gerekli değil
 
-        SimpleDateFormat currentTime = new SimpleDateFormat("HH:mm:ss a");
-        saveCurrentTime = currentTime.format(calForDate.getTime());
+        // SimpleDateFormat currentTime = new SimpleDateFormat("HH:mm:ss a"); // Artık gerekli değil
+        // saveCurrentTime = currentTime.format(calForDate.getTime()); // Artık gerekli değil
 
         final HashMap<String,Object> cartMap =new HashMap<>();
 
-        cartMap.put("productName",name.getText().toString());
-        cartMap.put("productPrice",price.getText().toString());
-        cartMap.put("currentTime",saveCurrentTime);
-        cartMap.put("currentDate",saveCurrentDate);
-        cartMap.put("totalQuantity",quantity.getText().toString());
-        cartMap.put("totalPrice",totalPrice);
+        // --- Ürün bilgilerini modelden almak daha güvenli ---
+        String productName = "";
+        String productPriceStr = ""; // String olarak alalım (Firestore'a yazdığımız gibi)
+        int productPriceInt = 0; // int olarak da alalım (totalPrice hesaplaması için)
+
+        if (newProductsModel != null) {
+            productName = newProductsModel.getName();
+            productPriceInt = newProductsModel.getPrice();
+        } else if (popularProductsModel != null) {
+            productName = popularProductsModel.getName();
+            productPriceInt = popularProductsModel.getPrice();
+        } else if (showAllModel != null) {
+            productName = showAllModel.getName();
+            productPriceInt = showAllModel.getPrice();
+        }
+        // Fiyat TextView'ından almak yerine modelden aldık
+        productPriceStr = String.valueOf(productPriceInt);
+        // Toplam fiyatı tekrar hesapla (miktar değişmiş olabilir)
+        int currentTotalPrice = productPriceInt * totalQuantity;
+
+
+        cartMap.put("productName", productName); // Modelden alınan isim
+        cartMap.put("productPrice", productPriceStr); // Modelden alınan fiyat (String)
+        // cartMap.put("currentTime",saveCurrentTime); // KALDIRILDI
+        // cartMap.put("currentDate",saveCurrentDate); // KALDIRILDI
+        cartMap.put("totalQuantity", String.valueOf(totalQuantity)); // Miktar (String)
+        cartMap.put("totalPrice", currentTotalPrice); // Hesaplanan toplam fiyat (int)
+        cartMap.put("lastUpdated", Timestamp.now()); // <-- ZAMAN DAMGASI EKLENDİ
 
         firestore.collection("AddToCart").document(auth.getCurrentUser().getUid())
                 .collection("User").add(cartMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentReference> task) {
-                        Toast.makeText(DetailedActivity.this, "Added To A Cart", Toast.LENGTH_SHORT).show();
-                        finish();
+                        if (task.isSuccessful()) { // Başarı kontrolü eklendi
+                            Toast.makeText(DetailedActivity.this, "Added To Cart", Toast.LENGTH_SHORT).show();
+                            finish(); // Başarılıysa aktiviteyi kapat
+                        } else {
+                            // Hata durumunda kullanıcıyı bilgilendir
+                            Toast.makeText(DetailedActivity.this, "Failed to add to cart: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                        }
                     }
                 });
     }

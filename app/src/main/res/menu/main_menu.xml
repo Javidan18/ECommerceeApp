@@ -14,4 +14,10 @@
         android:icon="@drawable/menu_shopping"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/menu_my_profile"
+        android:title="Profile"
+        android:icon="@drawable/menu_profile"
+        app:showAsAction="always" />
+
 </menu>
