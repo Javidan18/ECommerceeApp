@@ -17,9 +17,9 @@ import com.example.ecommerceapp.R;
 import com.example.ecommerceapp.adapters.AddressAdapter;
 import com.example.ecommerceapp.models.AddressModel;
 // Bu importlar muhtemelen artık gereksiz (obj kullanılmayacak)
-// import com.example.ecommerceapp.models.NewProductsModel;
-// import com.example.ecommerceapp.models.PopularProductsModel;
-// import com.example.ecommerceapp.models.ShowAllModel;
+import com.example.ecommerceapp.models.NewProductsModel;
+ import com.example.ecommerceapp.models.PopularProductsModel;
+ import com.example.ecommerceapp.models.ShowAllModel;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;

@@ -77,6 +77,8 @@ dependencies {
     implementation 'com.sun.mail:android-mail:1.6.7'
     implementation 'com.sun.mail:android-activation:1.6.7'
 
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+
     //Twillio telefona msg (Yorumda kalabilir)
     //implementation 'com.twilio.sdk:twilio:9.1.1'
 }
